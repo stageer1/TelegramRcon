@@ -27,7 +27,7 @@
 Запустите бота:
 
 ```bash
-python bot.py
+python main.py
 ```
 Файлы
 > config.json: Хранит настройки бота и RCON-сервера.
