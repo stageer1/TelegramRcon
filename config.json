@@ -1,0 +1,6 @@
+{
+  "token": "token",
+  "host": "localhost",
+  "port": 25575,
+  "password": "RconPassword"
+}

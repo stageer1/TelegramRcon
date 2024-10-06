@@ -1,0 +1,23 @@
+{
+  "staff": {
+    "allowed_commands": [
+      "mute",
+      "ban",
+      "kick"
+    ],
+    "allowed_super_commands": [],
+    "ban_words_for_commands": {
+      "lp": ["admin"]
+    }
+  },
+
+  "admin": {
+    "allowed_commands": [
+      "*"
+    ],
+    "allowed_super_commands": ["register", "group", "unregister"],
+    "ban_words_for_commands": {
+      "lp": ["admin"]
+    }
+  }
+}
