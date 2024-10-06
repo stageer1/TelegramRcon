@@ -1,5 +1,4 @@
 import asyncio
-import sqlite3 as sql
 from mcrcon import MCRcon
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command as cmd
@@ -10,7 +9,7 @@ config = json.load(open("config.json"))
 
 token = config["token"] # Вставьте токен своего Telegram-бота
 
-check_empty_users("data.db")
+check_empty_users()
 
 host = config["host"] # IP вашего сервера (без порта)
 port = config["port"] # Порт сервера
@@ -29,6 +28,7 @@ async def register_user(message: types.message):
 
     data = check_user_in_db(message.from_user.id, "data.db")[1]
     groups = json.load(open("groups.json"))
+    data_weight = groups[data]["weight"] if data != "super" else 10 ** 5
     groups_list = list(groups.keys())
     if data not in groups_list and data != "super":
         return await message.reply("❌ *Не удалось получить вашу группу.*", parse_mode="Markdown")
@@ -40,6 +40,8 @@ async def register_user(message: types.message):
             return await message.reply("⚠️ *Этот пользователь уже зарегистрирован.*", parse_mode="Markdown")
         if level not in groups_list:
             return await message.reply("❌ *Такой группы не существует!*", parse_mode="Markdown")
+        if data_weight <= groups[level]["weight"] or level == "super":
+            return await message.reply("⚠️ *Вы не можете зарегистрировать пользователя с этой группой!*", parse_mode="Markdown")
         register(tgid, level, "data.db")
         await message.reply(f"✅ *Вы зарегистрировали пользователя TG-{tgid} с группой {level.upper()}!*", parse_mode="Markdown")
     else:
@@ -53,8 +55,11 @@ async def unregister_user(message: types.message):
     tgid = int(meta[0])
 
     data = check_user_in_db(message.from_user.id)[1]
+    data2 = check_user_in_db(tgid)[1]
     groups = json.load(open("groups.json"))
     groups_list = list(groups.keys())
+    data_weight = groups[data]["weight"] if data != "super" else 10**5
+    data_weight2 = groups[data]["weight"] if data2 in groups_list else 0
     if data not in groups_list and data != "super":
         return await message.reply("❌ *Не удалось получить вашу группу.*", parse_mode="Markdown")
 
@@ -63,6 +68,8 @@ async def unregister_user(message: types.message):
     if  data == "super" or message.text.split()[0][1:] in groups[data]["allowed_super_commands"]:
         if not check_user_in_db(tgid):
             return await message.reply("⚠️ *Этот пользователь не зарегистрирован.*", parse_mode="Markdown")
+        if data2 == "super" or data_weight <= data_weight2:
+            return await message.reply("⚠️ *Вы не можете удалить этого пользователя!*", parse_mode="Markdown")
         unregister(tgid)
         await message.reply(f"✅ *Вы удалили пользователя TG-{tgid}!*", parse_mode="Markdown")
     else:
@@ -77,8 +84,10 @@ async def setGroup_user(message: types.message):
     level = meta[1]
 
     data = check_user_in_db(message.from_user.id)[1]
+    data2 = check_user_in_db(tgid)[1]
     groups = json.load(open("groups.json"))
     groups_list = list(groups.keys())
+    data_weight = groups[data]["weight"] if data != "super" else 10 ** 5
     if data not in groups_list and data != "super":
         return await message.reply("❌ *Не удалось получить вашу группу.*", parse_mode="Markdown")
 
@@ -89,6 +98,8 @@ async def setGroup_user(message: types.message):
             return await message.reply("⚠️ *Этот пользователь не зарегистрирован.*", parse_mode="Markdown")
         if level not in groups_list:
             return await message.reply("❌ *Такой группы не существует!*", parse_mode="Markdown")
+        if data2 == "super" or groups[level]["weight"] >= data_weight:
+            return await message.reply("⚠️ *Вы не можете установить пользователю эту группу!*", parse_mode="Markdown")
         set_group(tgid, level)
         await message.reply(f"✅ *Вы установили пользователю TG-{tgid} группу {level.upper()}!*", parse_mode="Markdown")
     else:
@@ -107,7 +118,7 @@ async def check_profile(message: types.message):
         groups = json.load(open("groups.json"))
         allowed_commands = groups[group]["allowed_commands"]
     else:
-        allowed_commands = ['\\*']
+        allowed_commands = ['*']
     for i in allowed_commands:
         msg += f"— {i}\n".replace("*", "\\*")
 
