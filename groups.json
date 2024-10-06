@@ -1,5 +1,6 @@
 {
   "staff": {
+	"weight": 0,
     "allowed_commands": [
       "mute",
       "ban",
@@ -12,6 +13,7 @@
   },
 
   "admin": {
+	"weight": 1,
     "allowed_commands": [
       "*"
     ],
